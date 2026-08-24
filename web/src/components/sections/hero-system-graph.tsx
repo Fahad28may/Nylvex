@@ -16,13 +16,13 @@ export function HeroSystemGraph() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center">
+      <div className="flex items-center overflow-x-auto pb-1">
         {nodes.map((node, index) => (
-          <div key={node.label} className="flex items-center">
+          <div key={node.label} className="flex shrink-0 items-center">
             {index > 0 ? (
               <div
                 className={cn(
-                  "h-px w-6 shrink-0 bg-border-strong transition-colors duration-200 sm:w-10",
+                  "h-px w-4 shrink-0 bg-border-strong transition-colors duration-200 sm:w-10",
                   (active === index || active === index - 1) && "bg-accent"
                 )}
               />
@@ -34,7 +34,7 @@ export function HeroSystemGraph() {
               onFocus={() => setActive(index)}
               onBlur={() => setActive(null)}
               className={cn(
-                "rounded-full border px-3 py-1.5 font-mono text-xs transition-colors duration-200 sm:text-sm",
+                "shrink-0 rounded-full border px-3 py-1.5 font-mono text-xs transition-colors duration-200 sm:text-sm",
                 active === index
                   ? "border-accent text-accent"
                   : "border-border-strong text-muted-strong hover:text-foreground"
