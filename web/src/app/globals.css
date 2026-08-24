@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0b;
+  --surface: #111113;
+  --surface-hover: #17171a;
+  --foreground: #f2f2f0;
+  --muted: #9a9aa2;
+  --muted-strong: #b8b8bf;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --accent: #e2823c;
+  --accent-foreground: #0a0a0b;
+  --focus-ring: #e2823c;
+}
+
+:root[data-theme="light"] {
+  --background: #faf9f7;
+  --surface: #f1f0ed;
+  --surface-hover: #e8e6e2;
+  --foreground: #15151a;
+  --muted: #63636b;
+  --muted-strong: #46464d;
+  --border: rgba(21, 21, 26, 0.1);
+  --border-strong: rgba(21, 21, 26, 0.18);
+  --accent: #c8641f;
+  --accent-foreground: #faf9f7;
+  --focus-ring: #c8641f;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --background: #faf9f7;
+    --surface: #f1f0ed;
+    --surface-hover: #e8e6e2;
+    --foreground: #15151a;
+    --muted: #63636b;
+    --muted-strong: #46464d;
+    --border: rgba(21, 21, 26, 0.1);
+    --border-strong: rgba(21, 21, 26, 0.18);
+    --accent: #c8641f;
+    --accent-foreground: #faf9f7;
+    --focus-ring: #c8641f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --container-content: 1200px;
+}
+
+html {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
