@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { ProjectCard } from "@/components/projects/project-card";
+import { WorkArchive } from "@/components/work/work-archive";
 import { getAllProjects } from "@/data/projects";
 
 export const metadata: Metadata = {
@@ -22,11 +22,7 @@ export default function WorkPage() {
         level="h1"
       />
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">
-        {projects.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
-        ))}
-      </div>
+      <WorkArchive projects={projects} />
     </Container>
   );
 }

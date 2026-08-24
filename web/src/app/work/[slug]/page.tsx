@@ -8,6 +8,7 @@ import { ProjectVisual } from "@/components/projects/project-visual";
 import { StatusBadge } from "@/components/projects/status-badge";
 import { ArchitectureDiagram } from "@/components/projects/architecture-diagram";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { InlineCta } from "@/components/ui/inline-cta";
 import { getAllProjects, getProjectBySlug } from "@/data/projects";
 
 export function generateStaticParams() {
@@ -93,6 +94,12 @@ export default async function ProjectPage({
       </Container>
 
       <Container className="flex flex-col gap-20 pb-28">
+        <Section title="Overview">
+          <p className="max-w-3xl text-base leading-relaxed text-muted-strong">
+            {project.description}
+          </p>
+        </Section>
+
         <Section title="Problem">
           <p className="max-w-3xl text-base leading-relaxed text-muted-strong">
             {project.problem}
@@ -141,6 +148,8 @@ export default async function ProjectPage({
         <Section title="Stack">
           <p className="text-sm text-muted-strong">{project.technologies.join(" · ")}</p>
         </Section>
+
+        <InlineCta title="Building something similar?" />
       </Container>
     </article>
   );

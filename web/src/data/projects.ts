@@ -38,7 +38,7 @@ export const projects: Project[] = [
     summary:
       "An intelligent CRM system that analyzes sales activity, identifies opportunities, and recommends actions.",
     description:
-      "An intelligent CRM system that analyzes sales activity, identifies opportunities, and recommends actions.",
+      "AI CRM Agent sits on top of an existing CRM rather than replacing it — reading activity as it's logged, scoring which accounts show real buying signals, and drafting the next action for a rep to approve. The goal was to cut the gap between data entry and follow-up, not to build another dashboard.",
     technologies: ["Python", "FastAPI", "PostgreSQL", "OpenAI", "Next.js"],
     status: "prototype",
     githubUrl: "https://github.com/Fahad28may",
@@ -94,7 +94,7 @@ export const projects: Project[] = [
     summary:
       "A personal AI system capable of interacting with files, applications, and external tools.",
     description:
-      "A personal AI system capable of interacting with files, applications, and external tools.",
+      "AI Personal Agent is a local assistant that goes past conversation into actually doing the task — reading and editing files, running scripts, and driving applications through a growing set of MCP tool servers. It's built to run on a single machine as a working environment, not a hosted chatbot.",
     technologies: ["Python", "MCP", "Anthropic", "SQLite"],
     status: "in-progress",
     githubUrl: "https://github.com/Fahad28may",
@@ -139,7 +139,7 @@ export const projects: Project[] = [
     summary:
       "A knowledge system that turns large document collections into an intelligent, searchable interface.",
     description:
-      "A knowledge system that turns large document collections into an intelligent, searchable interface.",
+      "Knowledge Intelligence turns a document collection into something you can actually ask questions of — retrieving the relevant passages for a query, re-ranking them, and generating an answer with citations back to the source. The focus was on retrieval quality and traceability, not just wiring up an embedding API.",
     technologies: ["Python", "FastAPI", "PostgreSQL", "pgvector", "OpenAI"],
     status: "prototype",
     githubUrl: "https://github.com/Fahad28may",
@@ -184,7 +184,7 @@ export const projects: Project[] = [
     summary:
       "A conversational voice system capable of understanding requests and executing actions through external tools.",
     description:
-      "A conversational voice system capable of understanding requests and executing actions through external tools.",
+      "AI Voice Agent handles a spoken request end to end — understanding intent as audio streams in, calling out to external tools while still speaking, and responding without the dead air that comes from waiting on a full round trip. It's a latency problem as much as an understanding problem.",
     technologies: ["Python", "WebSockets", "Realtime API", "FastAPI"],
     status: "prototype",
     githubUrl: "https://github.com/Fahad28may",
@@ -226,7 +226,8 @@ export const projects: Project[] = [
     title: "Computer Vision System",
     categories: ["Computer Vision", "Python", "Realtime"],
     summary: "A real-time visual detection and event-processing system.",
-    description: "A real-time visual detection and event-processing system.",
+    description:
+      "Computer Vision System takes a live video feed and turns it into discrete, actionable events instead of a stream of bounding boxes — tracking objects across frames to filter noise before anything reaches a downstream consumer. Built to run within real hardware constraints, not just a benchmark GPU.",
     technologies: ["Python", "PyTorch", "OpenCV", "Redis"],
     status: "prototype",
     githubUrl: "https://github.com/Fahad28may",
