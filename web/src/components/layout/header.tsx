@@ -14,6 +14,7 @@ export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [scrolled, setScrolled] = useState(false);
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -27,8 +28,22 @@ export function Header() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
+    <header
+      className={cn(
+        "sticky top-0 z-50 border-b transition-colors duration-300",
+        scrolled || open
+          ? "border-border bg-background/85 backdrop-blur"
+          : "border-transparent bg-transparent"
+      )}
+    >
       <Container className="flex h-16 items-center justify-between">
         <Logo />
 

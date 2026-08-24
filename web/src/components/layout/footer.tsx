@@ -19,7 +19,7 @@ export function Footer() {
             <span className="text-xs font-medium uppercase tracking-wide text-muted">
               Site
             </span>
-            {navItems.map((item) => (
+            {[...navItems, { label: "Contact", href: "/contact" }].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

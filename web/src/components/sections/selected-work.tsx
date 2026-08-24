@@ -6,7 +6,7 @@ import { Reveal } from "@/components/animations/reveal";
 import { getFeaturedProjects } from "@/data/projects";
 
 export function SelectedWork() {
-  const projects = getFeaturedProjects();
+  const projects = getFeaturedProjects().slice(0, 3);
 
   return (
     <section className="border-b border-border py-24 md:py-28">
@@ -14,8 +14,8 @@ export function SelectedWork() {
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading
             eyebrow="Selected work"
-            title="Systems built end to end"
-            description="Systems and products built across AI, software engineering, and intelligent applications."
+            title="A few systems worth a closer look"
+            description="A selection of systems and products built across AI and software engineering."
           />
           <Link
             href="/work"
@@ -25,10 +25,10 @@ export function SelectedWork() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-3">
           {projects.map((project, index) => (
             <Reveal key={project.slug} delay={index * 0.05}>
-              <ProjectCard project={project} />
+              <ProjectCard project={project} index={index} />
             </Reveal>
           ))}
         </div>

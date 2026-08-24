@@ -1,6 +1,7 @@
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/animations/reveal";
+import { HeroSystemGraph } from "@/components/sections/hero-system-graph";
 import { siteConfig } from "@/lib/site-config";
 
 export function Hero() {
@@ -29,6 +30,12 @@ export function Hero() {
             <Button href="/contact" variant="secondary">
               Start a project
             </Button>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.2}>
+          <div className="pt-10">
+            <HeroSystemGraph />
           </div>
         </Reveal>
       </Container>

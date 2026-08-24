@@ -1,8 +1,6 @@
 import { Hero } from "@/components/sections/hero";
 import { SelectedWork } from "@/components/sections/selected-work";
-import { CapabilitiesPreview } from "@/components/sections/capabilities-preview";
-import { LabPreview } from "@/components/sections/lab-preview";
-import { Process } from "@/components/sections/process";
+import { InsightsPreview } from "@/components/sections/insights-preview";
 import { AboutPreview } from "@/components/sections/about-preview";
 import { Cta } from "@/components/sections/cta";
 import { siteConfig } from "@/lib/site-config";
@@ -28,9 +26,7 @@ export default function Home() {
       />
       <Hero />
       <SelectedWork />
-      <CapabilitiesPreview />
-      <LabPreview />
-      <Process />
+      <InsightsPreview />
       <AboutPreview />
       <Cta />
     </>
