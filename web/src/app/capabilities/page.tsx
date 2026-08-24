@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Tag } from "@/components/ui/tag";
+import { InlineCta } from "@/components/ui/inline-cta";
+import { CapabilitiesExplorer } from "@/components/capabilities/capabilities-explorer";
 import { capabilityGroups, technologies } from "@/data/capabilities";
 
 export const metadata: Metadata = {
@@ -20,21 +22,7 @@ export default function CapabilitiesPage() {
         level="h1"
       />
 
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-        {capabilityGroups.map((group) => (
-          <div key={group.title} className="flex flex-col gap-4 border-t border-border pt-6">
-            <h2 className="text-lg font-medium text-foreground">{group.title}</h2>
-            <p className="text-sm text-muted-strong">{group.description}</p>
-            <ul className="flex flex-col gap-2 pt-2">
-              {group.items.map((item) => (
-                <li key={item} className="text-sm text-muted-strong">
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <CapabilitiesExplorer groups={capabilityGroups} />
 
       <div className="flex flex-col gap-6 border-t border-border pt-10">
         <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
@@ -46,6 +34,8 @@ export default function CapabilitiesPage() {
           ))}
         </div>
       </div>
+
+      <InlineCta title="Need a system like this?" />
     </Container>
   );
 }

@@ -26,7 +26,7 @@ export default function LabPage() {
         {experiments.map((experiment) => (
           <div
             key={experiment.slug}
-            className="flex flex-col gap-3 rounded-lg border border-border p-6"
+            className="flex flex-col gap-3 rounded-lg border border-border p-6 transition-colors duration-200 hover:border-border-strong hover:bg-surface"
           >
             <Tag className="self-start font-mono text-[10px]">{experiment.status}</Tag>
             <h2 className="text-lg font-medium text-foreground">{experiment.title}</h2>
