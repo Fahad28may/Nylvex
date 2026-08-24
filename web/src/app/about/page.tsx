@@ -15,16 +15,16 @@ export default function AboutPage() {
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Nylvex
         </span>
-        <p className="max-w-2xl text-2xl font-medium leading-snug tracking-tight text-foreground md:text-3xl">
+        <h1 className="max-w-2xl text-2xl font-medium leading-snug tracking-tight text-foreground md:text-3xl">
           Nylvex is an AI and software engineering studio focused on building intelligent
           systems and practical software.
-        </p>
+        </h1>
       </div>
 
       <div className="flex flex-col gap-6 border-t border-border pt-10">
-        <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
+        <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Built by Fahad
-        </span>
+        </h2>
         <div className="flex max-w-2xl flex-col gap-4 text-base leading-relaxed text-muted-strong">
           <p>
             I&apos;m Fahad, a software engineer working across Python, AI systems, and

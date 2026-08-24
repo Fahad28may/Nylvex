@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { navItems } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -50,41 +51,45 @@ export function Header() {
           })}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Button href="/contact" size="sm">
             Start a project
           </Button>
         </div>
 
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center text-foreground md:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className="relative block h-4 w-5">
-            <span
-              className={cn(
-                "absolute left-0 top-0 block h-px w-5 bg-current transition-transform",
-                open && "translate-y-[7.5px] rotate-45"
-              )}
-            />
-            <span
-              className={cn(
-                "absolute left-0 top-1/2 block h-px w-5 -translate-y-1/2 bg-current transition-opacity",
-                open && "opacity-0"
-              )}
-            />
-            <span
-              className={cn(
-                "absolute bottom-0 left-0 block h-px w-5 bg-current transition-transform",
-                open && "-translate-y-[7.5px] -rotate-45"
-              )}
-            />
-          </span>
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center text-foreground"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className="relative block h-4 w-5">
+              <span
+                className={cn(
+                  "absolute left-0 top-0 block h-px w-5 bg-current transition-transform",
+                  open && "translate-y-[7.5px] rotate-45"
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute left-0 top-1/2 block h-px w-5 -translate-y-1/2 bg-current transition-opacity",
+                  open && "opacity-0"
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute bottom-0 left-0 block h-px w-5 bg-current transition-transform",
+                  open && "-translate-y-[7.5px] -rotate-45"
+                )}
+              />
+            </span>
+          </button>
+        </div>
       </Container>
 
       <div

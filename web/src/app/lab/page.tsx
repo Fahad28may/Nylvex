@@ -19,6 +19,7 @@ export default function LabPage() {
         eyebrow="Nylvex Lab"
         title="Experiments in progress"
         description="Prototypes, research, and technical work that hasn't shipped as a full product yet."
+        level="h1"
       />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

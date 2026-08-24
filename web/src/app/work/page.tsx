@@ -19,6 +19,7 @@ export default function WorkPage() {
         eyebrow="Work"
         title="Selected work"
         description="Systems and products built across AI, software engineering, and intelligent applications."
+        level="h1"
       />
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">

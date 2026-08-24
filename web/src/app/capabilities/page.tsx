@@ -17,6 +17,7 @@ export default function CapabilitiesPage() {
         eyebrow="Capabilities"
         title="What gets built"
         description="Capabilities organized around problems and systems, not a list of buzzwords."
+        level="h1"
       />
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">

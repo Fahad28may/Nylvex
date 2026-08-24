@@ -5,14 +5,18 @@ export function SectionHeading({
   title,
   description,
   align = "left",
+  level = "h2",
   className,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   align?: "left" | "center";
+  level?: "h1" | "h2";
   className?: string;
 }) {
+  const Heading = level;
+
   return (
     <div
       className={cn(
@@ -26,9 +30,9 @@ export function SectionHeading({
           {eyebrow}
         </span>
       ) : null}
-      <h2 className="text-3xl font-medium tracking-tight text-foreground md:text-4xl">
+      <Heading className="text-3xl font-medium tracking-tight text-foreground md:text-4xl">
         {title}
-      </h2>
+      </Heading>
       {description ? (
         <p className="max-w-2xl text-base text-muted-strong md:text-lg">{description}</p>
       ) : null}
