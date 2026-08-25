@@ -6,6 +6,8 @@
 
 This report documents what was actually inspected, what was found, what was fixed and verified, and what remains a judgment call or residual risk. Nylvex is a marketing/portfolio site with no authentication, no database, and no user-generated content rendered back to other users — the scope of this audit reflects that actual architecture rather than a generic checklist.
 
+**Post-audit update (2026-08-25):** Ask Nylvex's LLM provider was switched from a direct Anthropic integration to OpenRouter (`stealth/ox-alpha`). References to `ANTHROPIC_API_KEY` and Anthropic's API below describe the architecture as it stood during this audit — the same rate limiting, input validation, and slug/capability allowlisting were carried over unchanged to the OpenRouter integration (now gated on `OPENROUTER_API_KEY`). The findings and fixes themselves remain accurate; only the upstream provider name has changed.
+
 ---
 
 ## Executive Summary

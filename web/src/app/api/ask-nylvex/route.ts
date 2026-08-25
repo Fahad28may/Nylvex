@@ -4,6 +4,7 @@ import { capabilityGroups } from "@/data/capabilities";
 import { getAllPosts } from "@/data/blog";
 import { nylvexKnowledge } from "@/data/nylvex";
 import { isRateLimited } from "@/lib/rate-limit";
+import { siteConfig } from "@/lib/site-config";
 
 export const runtime = "nodejs";
 
@@ -58,36 +59,39 @@ Context:
 ${buildContext()}`;
 
 const RESPOND_TOOL = {
-  name: "respond_to_visitor",
-  description: "Send a structured reply to the website visitor.",
-  input_schema: {
-    type: "object" as const,
-    properties: {
-      message: {
-        type: "string",
-        description: "The conversational reply to show the visitor, 2-5 sentences.",
+  type: "function" as const,
+  function: {
+    name: "respond_to_visitor",
+    description: "Send a structured reply to the website visitor.",
+    parameters: {
+      type: "object" as const,
+      properties: {
+        message: {
+          type: "string",
+          description: "The conversational reply to show the visitor, 2-5 sentences.",
+        },
+        relevantCapabilities: {
+          type: "array",
+          items: { type: "string" },
+          description: "Relevant capability names from the provided list, if applicable.",
+        },
+        relevantProjectSlugs: {
+          type: "array",
+          items: { type: "string" },
+          description: "Relevant Nylvex project slugs from the provided list, if applicable.",
+        },
+        architectureSteps: {
+          type: "array",
+          items: { type: "string" },
+          description: "3-6 short pipeline steps if the visitor described an idea worth sketching.",
+        },
+        suggestStartProject: {
+          type: "boolean",
+          description: "True only if the visitor has shown genuine project intent.",
+        },
       },
-      relevantCapabilities: {
-        type: "array",
-        items: { type: "string" },
-        description: "Relevant capability names from the provided list, if applicable.",
-      },
-      relevantProjectSlugs: {
-        type: "array",
-        items: { type: "string" },
-        description: "Relevant Nylvex project slugs from the provided list, if applicable.",
-      },
-      architectureSteps: {
-        type: "array",
-        items: { type: "string" },
-        description: "3-6 short pipeline steps if the visitor described an idea worth sketching.",
-      },
-      suggestStartProject: {
-        type: "boolean",
-        description: "True only if the visitor has shown genuine project intent.",
-      },
+      required: ["message"],
     },
-    required: ["message"],
   },
 };
 
@@ -119,7 +123,7 @@ function sanitizeMessages(input: unknown): ChatMessage[] | null {
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json({ error: "Ask Nylvex is not configured yet." }, { status: 503 });
@@ -127,7 +131,7 @@ export async function POST(request: NextRequest) {
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 
-  // Each request is a real, billed call to Anthropic's API — cap volume per
+  // Each request is a real, billed call through OpenRouter — cap volume per
   // IP so this can't be scripted into unbounded API spend (denial-of-wallet).
   if (isRateLimited(`ask-nylvex:${ip}`, { windowMs: 10 * 60 * 1000, maxRequests: 12 })) {
     return NextResponse.json(
@@ -144,20 +148,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",
+        "HTTP-Referer": siteConfig.url,
+        "X-Title": siteConfig.name,
       },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
+        model: process.env.OPENROUTER_MODEL || "stealth/ox-alpha",
         max_tokens: 700,
-        system: SYSTEM_PROMPT,
-        messages,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
         tools: [RESPOND_TOOL],
-        tool_choice: { type: "tool", name: "respond_to_visitor" },
+        tool_choice: { type: "function", function: { name: "respond_to_visitor" } },
       }),
     });
 
@@ -169,12 +173,28 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const toolUse = data.content?.find(
-      (block: { type: string }) => block.type === "tool_use"
-    ) as { input?: Record<string, unknown> } | undefined;
+    const choiceMessage = data.choices?.[0]?.message as
+      | { content?: string; tool_calls?: { function?: { arguments?: string } }[] }
+      | undefined;
 
-    const input = toolUse?.input ?? {};
-    const message = typeof input.message === "string" ? input.message : "";
+    const toolArgs = choiceMessage?.tool_calls?.[0]?.function?.arguments;
+    let input: Record<string, unknown> = {};
+    if (typeof toolArgs === "string") {
+      try {
+        input = JSON.parse(toolArgs);
+      } catch {
+        input = {};
+      }
+    }
+
+    // Some models on OpenRouter may ignore tool_choice and reply in plain
+    // text instead — fall back to that rather than failing the request.
+    const message =
+      typeof input.message === "string"
+        ? input.message
+        : typeof choiceMessage?.content === "string"
+          ? choiceMessage.content
+          : "";
 
     if (!message) {
       return NextResponse.json(
