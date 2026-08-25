@@ -7,6 +7,13 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { siteConfig } from "@/lib/site-config";
 
 export const runtime = "nodejs";
+// stealth/ox-alpha (via OpenRouter) has been observed taking 6-30s+ to
+// respond. Vercel's default function timeout is well under that, so this
+// must be raised explicitly or slower responses fail in production even
+// though the model itself answered successfully.
+export const maxDuration = 60;
+
+const UPSTREAM_TIMEOUT_MS = 55_000;
 
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 800;
@@ -150,6 +157,7 @@ export async function POST(request: NextRequest) {
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "content-type": "application/json",

@@ -21,13 +21,20 @@ export function AskNylvexPanel({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowResponse, setSlowResponse] = useState(false);
   const [error, setError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-  }, [messages, loading]);
+  }, [messages, loading, slowResponse]);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => setSlowResponse(true), 6000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -42,6 +49,7 @@ export function AskNylvexPanel({
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
+    setSlowResponse(false);
     setError("");
 
     try {
@@ -144,7 +152,16 @@ export function AskNylvexPanel({
                     onStartProject={handleStartProject}
                   />
                 ))}
-                {loading ? <TypingIndicator /> : null}
+                {loading ? (
+                  <div className="flex flex-col gap-1.5">
+                    <TypingIndicator />
+                    {slowResponse ? (
+                      <p className="text-xs text-muted">
+                        Still thinking — detailed answers can take a little longer.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
