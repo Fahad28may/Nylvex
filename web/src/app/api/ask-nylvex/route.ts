@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAllProjects } from "@/data/projects";
 import { capabilityGroups } from "@/data/capabilities";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Ask Nylvex is not configured yet." },
       { status: 503 }
+    );
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+  // Each request is a real, billed call to Anthropic's API — cap volume per
+  // IP so this can't be scripted into unbounded API spend (denial-of-wallet).
+  if (isRateLimited(`ask-nylvex:${ip}`, { windowMs: 10 * 60 * 1000, maxRequests: 8 })) {
+    return NextResponse.json(
+      { error: "Too many questions. Please try again in a few minutes." },
+      { status: 429 }
     );
   }
 

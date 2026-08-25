@@ -54,19 +54,26 @@ export function ContactForm() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Field label="Name" htmlFor="name" required error={errors.name}>
-          <TextInput id="name" name="name" autoComplete="name" required />
+          <TextInput id="name" name="name" autoComplete="name" maxLength={200} required />
         </Field>
         <Field label="Email" htmlFor="email" required error={errors.email}>
-          <TextInput id="email" name="email" type="email" autoComplete="email" required />
+          <TextInput
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            maxLength={254}
+            required
+          />
         </Field>
       </div>
 
       <Field label="Company" htmlFor="companyName">
-        <TextInput id="companyName" name="companyName" autoComplete="organization" />
+        <TextInput id="companyName" name="companyName" autoComplete="organization" maxLength={200} />
       </Field>
 
       <Field label="What are you trying to build?" htmlFor="project" required error={errors.project}>
-        <TextArea id="project" name="project" required />
+        <TextArea id="project" name="project" maxLength={5000} required />
       </Field>
 
       <Field
@@ -75,15 +82,15 @@ export function ContactForm() {
         required
         error={errors.problem}
       >
-        <TextArea id="problem" name="problem" required />
+        <TextArea id="problem" name="problem" maxLength={5000} required />
       </Field>
 
       <Field label="Existing system (if any)" htmlFor="existingSystem">
-        <TextInput id="existingSystem" name="existingSystem" />
+        <TextInput id="existingSystem" name="existingSystem" maxLength={1000} />
       </Field>
 
       <Field label="Required integrations" htmlFor="integrations">
-        <TextInput id="integrations" name="integrations" />
+        <TextInput id="integrations" name="integrations" maxLength={1000} />
       </Field>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

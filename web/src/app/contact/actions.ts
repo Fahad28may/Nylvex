@@ -12,6 +12,18 @@ export type ContactFormState = {
 
 const REQUIRED_FIELDS = ["name", "email", "project", "problem"] as const;
 
+const MAX_LENGTHS: Record<string, number> = {
+  name: 200,
+  email: 254,
+  companyName: 200,
+  project: 5000,
+  problem: 5000,
+  existingSystem: 1000,
+  integrations: 1000,
+  budget: 100,
+  timeline: 100,
+};
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -28,7 +40,7 @@ export async function submitContactForm(
   const headerList = await headers();
   const ip = headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 
-  if (isRateLimited(ip)) {
+  if (isRateLimited(`contact:${ip}`)) {
     return {
       status: "error",
       message: "Too many submissions. Please try again later, or email us directly.",
@@ -51,6 +63,12 @@ export async function submitContactForm(
   for (const field of REQUIRED_FIELDS) {
     if (!fields[field]) {
       fieldErrors[field] = "This field is required.";
+    }
+  }
+  for (const [field, value] of Object.entries(fields)) {
+    const maxLength = MAX_LENGTHS[field];
+    if (maxLength && value.length > maxLength) {
+      fieldErrors[field] = `Keep this under ${maxLength} characters.`;
     }
   }
   if (fields.email && !isValidEmail(fields.email)) {
