@@ -6,8 +6,12 @@ import { siteConfig } from "@/lib/site-config";
 
 export function Hero() {
   return (
-    <section className="border-b border-border">
-      <Container className="flex flex-col gap-8 py-24 md:py-36">
+    <section className="relative overflow-hidden border-b border-border">
+      <div
+        aria-hidden="true"
+        className="gradient-glow pointer-events-none absolute -right-40 -top-40 h-[480px] w-[480px] opacity-40 blur-2xl"
+      />
+      <Container className="relative flex flex-col gap-6 py-16 md:py-24">
         <Reveal>
           <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
             {siteConfig.eyebrow}
@@ -34,7 +38,7 @@ export function Hero() {
         </Reveal>
 
         <Reveal delay={0.2}>
-          <div className="pt-10">
+          <div className="pt-6">
             <HeroSystemGraph />
           </div>
         </Reveal>

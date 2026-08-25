@@ -48,7 +48,7 @@ export default async function BlogPostPage({
 
   return (
     <article>
-      <Container className="flex flex-col gap-16 py-20 md:py-28">
+      <Container className="flex flex-col gap-12 py-14 md:py-20">
         <div className="flex flex-col gap-6">
           <Link href="/blog" className="text-sm text-muted-strong hover:text-foreground">
             ← Back to insights

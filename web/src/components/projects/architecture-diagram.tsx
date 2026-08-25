@@ -31,8 +31,10 @@ function Node({ node, id, activeId, onActivate, onDeactivate }: NodeProps) {
         onBlur={onDeactivate}
         onClick={() => onActivate(id, node.detail)}
         className={cn(
-          "flex flex-col rounded-md border bg-surface px-4 py-3 text-left transition-colors duration-200",
-          isActive ? "border-accent" : "border-border hover:border-border-strong"
+          "flex flex-col rounded-md border bg-surface px-4 py-3 text-left transition-all duration-200",
+          isActive
+            ? "border-accent shadow-[0_0_20px_-8px_var(--gradient-end)]"
+            : "border-border hover:border-border-strong"
         )}
       >
         <span

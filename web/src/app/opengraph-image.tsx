@@ -15,15 +15,17 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "90px",
-          background: "#0a0a0b",
-          color: "#f2f2f0",
+          background: "#05070d",
+          backgroundImage:
+            "radial-gradient(circle at 85% 15%, rgba(124,58,237,0.35), transparent 55%), radial-gradient(circle at 10% 90%, rgba(37,99,235,0.3), transparent 55%)",
+          color: "#f5f7ff",
         }}
       >
         <div
           style={{
             fontSize: 22,
             letterSpacing: 4,
-            color: "#e2823c",
+            color: "#60a5fa",
             fontFamily: "monospace",
             marginBottom: 28,
           }}

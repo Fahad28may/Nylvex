@@ -9,8 +9,8 @@ export function SelectedWork() {
   const projects = getFeaturedProjects().slice(0, 3);
 
   return (
-    <section className="border-b border-border py-24 md:py-28">
-      <Container className="flex flex-col gap-14">
+    <section className="border-b border-border py-16 md:py-20">
+      <Container className="flex flex-col gap-10">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading
             eyebrow="Selected work"
@@ -25,7 +25,7 @@ export function SelectedWork() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-3">
           {projects.map((project, index) => (
             <Reveal key={project.slug} delay={index * 0.05}>
               <ProjectCard project={project} index={index} />

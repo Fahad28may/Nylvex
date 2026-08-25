@@ -14,7 +14,7 @@ export default function BlogPage() {
   const [featured, ...rest] = getAllPosts();
 
   return (
-    <Container className="flex flex-col gap-20 py-20 md:py-28">
+    <Container className="flex flex-col gap-14 py-14 md:py-20">
       <div className="flex flex-col gap-4">
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Nylvex / Insights

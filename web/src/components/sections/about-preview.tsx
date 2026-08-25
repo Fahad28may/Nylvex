@@ -4,7 +4,7 @@ import { Reveal } from "@/components/animations/reveal";
 
 export function AboutPreview() {
   return (
-    <section className="border-b border-border py-24 md:py-28">
+    <section className="border-b border-border py-14 md:py-16">
       <Container className="flex flex-col gap-6">
         <Reveal>
           <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">

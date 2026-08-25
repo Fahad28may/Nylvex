@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <Container className="flex flex-col gap-20 py-20 md:py-28">
+    <Container className="flex flex-col gap-14 py-14 md:py-20">
       <div className="flex flex-col gap-6">
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Nylvex
@@ -21,7 +21,7 @@ export default function AboutPage() {
         </h1>
       </div>
 
-      <div className="flex flex-col gap-6 border-t border-border pt-10">
+      <div className="flex flex-col gap-6 border-t border-border pt-8">
         <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Built by Fahad
         </h2>

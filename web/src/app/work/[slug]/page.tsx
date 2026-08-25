@@ -44,7 +44,7 @@ export default async function ProjectPage({
 
   return (
     <article className="flex flex-col">
-      <Container className="flex flex-col gap-8 py-20 md:py-28">
+      <Container className="flex flex-col gap-6 py-14 md:py-20">
         <Link href="/work" className="text-sm text-muted-strong hover:text-foreground">
           ← Back to work
         </Link>
@@ -93,7 +93,7 @@ export default async function ProjectPage({
         <ProjectVisual title={project.title} categories={project.categories} className="mt-4" />
       </Container>
 
-      <Container className="flex flex-col gap-20 pb-28">
+      <Container className="flex flex-col gap-14 pb-20">
         <Section title="Overview">
           <p className="max-w-3xl text-base leading-relaxed text-muted-strong">
             {project.description}
@@ -157,7 +157,7 @@ export default async function ProjectPage({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-5 border-t border-border pt-10">
+    <div className="flex flex-col gap-4 border-t border-border pt-8">
       <h2 className="text-xs font-medium uppercase tracking-[0.14em] text-accent">{title}</h2>
       {children}
     </div>

@@ -34,9 +34,9 @@ export function WorkArchive({ projects }: { projects: Project[] }) {
             onClick={() => setActive(category)}
             aria-pressed={active === category}
             className={cn(
-              "rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200",
+              "rounded-full border px-3.5 py-1.5 text-sm transition-all duration-200",
               active === category
-                ? "border-accent text-accent"
+                ? "gradient-accent border-transparent text-accent-foreground"
                 : "border-border-strong text-muted-strong hover:text-foreground"
             )}
           >
@@ -48,7 +48,7 @@ export function WorkArchive({ projects }: { projects: Project[] }) {
       {filtered.length === 0 ? (
         <p className="py-16 text-sm text-muted-strong">No projects in this category yet.</p>
       ) : (
-        <motion.div layout className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">
+        <motion.div layout className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2">
           <AnimatePresence mode="popLayout">
             {filtered.map((project, index) => (
               <motion.div

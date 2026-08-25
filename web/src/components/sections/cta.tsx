@@ -4,7 +4,7 @@ import { Reveal } from "@/components/animations/reveal";
 
 export function Cta() {
   return (
-    <section className="py-24 md:py-28">
+    <section className="py-16 md:py-20">
       <Container className="flex flex-col items-start gap-6">
         <Reveal>
           <h2 className="max-w-2xl text-3xl font-medium tracking-tight text-foreground md:text-4xl">

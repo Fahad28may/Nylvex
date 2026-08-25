@@ -14,7 +14,7 @@ export default function LabPage() {
   const experiments = getAllExperiments();
 
   return (
-    <Container className="flex flex-col gap-14 py-20 md:py-28">
+    <Container className="flex flex-col gap-10 py-14 md:py-20">
       <SectionHeading
         eyebrow="Nylvex Lab"
         title="Experiments in progress"

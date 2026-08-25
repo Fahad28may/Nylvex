@@ -23,7 +23,7 @@ export function HeroSystemGraph() {
               <div
                 className={cn(
                   "h-px w-4 shrink-0 bg-border-strong transition-colors duration-200 sm:w-10",
-                  (active === index || active === index - 1) && "bg-accent"
+                  (active === index || active === index - 1) && "gradient-accent"
                 )}
               />
             ) : null}
@@ -34,9 +34,9 @@ export function HeroSystemGraph() {
               onFocus={() => setActive(index)}
               onBlur={() => setActive(null)}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-1.5 font-mono text-xs transition-colors duration-200 sm:text-sm",
+                "shrink-0 rounded-full border px-3 py-1.5 font-mono text-xs transition-all duration-200 sm:text-sm",
                 active === index
-                  ? "border-accent text-accent"
+                  ? "gradient-accent border-transparent text-accent-foreground shadow-[0_0_20px_-6px_var(--gradient-end)]"
                   : "border-border-strong text-muted-strong hover:text-foreground"
               )}
             >

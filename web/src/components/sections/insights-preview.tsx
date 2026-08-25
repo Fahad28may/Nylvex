@@ -8,8 +8,8 @@ export function InsightsPreview() {
   const posts = getLatestPosts(3);
 
   return (
-    <section className="border-b border-border py-24 md:py-28">
-      <Container className="flex flex-col gap-14">
+    <section className="border-b border-border py-16 md:py-20">
+      <Container className="flex flex-col gap-10">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading eyebrow="Insights" title="Latest insights" />
           <Link

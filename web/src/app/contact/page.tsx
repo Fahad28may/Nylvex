@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <Container className="flex flex-col gap-14 py-20 md:py-28">
+    <Container className="flex flex-col gap-10 py-14 md:py-20">
       <div className="flex flex-col gap-4">
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Contact

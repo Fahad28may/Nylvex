@@ -14,7 +14,7 @@ export default function WorkPage() {
   const projects = getAllProjects();
 
   return (
-    <Container className="flex flex-col gap-14 py-20 md:py-28">
+    <Container className="flex flex-col gap-10 py-14 md:py-20">
       <SectionHeading
         eyebrow="Work"
         title="Selected work"

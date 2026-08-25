@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function CapabilitiesPage() {
   return (
-    <Container className="flex flex-col gap-20 py-20 md:py-28">
+    <Container className="flex flex-col gap-14 py-14 md:py-20">
       <SectionHeading
         eyebrow="Capabilities"
         title="What gets built"

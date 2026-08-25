@@ -11,7 +11,7 @@ export function CapabilitiesExplorer({ groups }: { groups: CapabilityGroup[] }) 
   const group = groups[active];
 
   return (
-    <div className="grid grid-cols-1 gap-10 md:grid-cols-[260px_1fr] md:gap-16">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr] md:gap-10">
       <div className="flex flex-row gap-2 overflow-x-auto md:flex-col md:gap-1 md:overflow-visible">
         {groups.map((item, index) => (
           <button
@@ -22,7 +22,7 @@ export function CapabilitiesExplorer({ groups }: { groups: CapabilityGroup[] }) 
             className={cn(
               "shrink-0 rounded-md border-l-2 px-4 py-3 text-left text-sm transition-colors duration-200 md:border-l-2 md:px-4",
               active === index
-                ? "border-accent bg-surface text-foreground"
+                ? "border-accent bg-gradient-to-r from-accent/10 to-transparent text-foreground"
                 : "border-transparent text-muted-strong hover:text-foreground"
             )}
           >
