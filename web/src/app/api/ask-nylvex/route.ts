@@ -1,15 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAllProjects } from "@/data/projects";
 import { capabilityGroups } from "@/data/capabilities";
+import { getAllPosts } from "@/data/blog";
+import { nylvexKnowledge } from "@/data/nylvex";
 import { isRateLimited } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+const MAX_MESSAGES = 12;
+const MAX_MESSAGE_LENGTH = 800;
+
+const KNOWN_PROJECT_SLUGS = new Set(getAllProjects().map((p) => p.slug));
+const KNOWN_CAPABILITIES = new Set(
+  capabilityGroups.flatMap((group) => group.items.map((item) => item.toLowerCase()))
+);
 
 function buildContext() {
   const projects = getAllProjects()
     .map(
       (project) =>
-        `- ${project.title} (slug: ${project.slug}): ${project.summary} Categories: ${project.categories.join(", ")}. Stack: ${project.technologies.join(", ")}.`
+        `- ${project.title} (slug: ${project.slug}): ${project.summary} Categories: ${project.categories.join(", ")}. Stack: ${project.technologies.join(", ")}. Status: ${project.status}.`
     )
     .join("\n");
 
@@ -17,51 +27,120 @@ function buildContext() {
     .map((group) => `- ${group.title}: ${group.items.join(", ")}`)
     .join("\n");
 
-  return `Nylvex projects:\n${projects}\n\nNylvex capabilities:\n${capabilities}`;
+  const posts = getAllPosts()
+    .map((post) => `- ${post.title} (/blog/${post.slug}): ${post.description}`)
+    .join("\n");
+
+  return [
+    `Nylvex: ${nylvexKnowledge.description}`,
+    `Philosophy: ${nylvexKnowledge.philosophy}`,
+    `Process: ${nylvexKnowledge.process.join(" ")}`,
+    `About the founder: ${nylvexKnowledge.founder}`,
+    `\nNylvex capabilities:\n${capabilities}`,
+    `\nNylvex projects:\n${projects}`,
+    `\nNylvex insights (blog articles):\n${posts}`,
+  ].join("\n");
 }
 
-const SYSTEM_PROMPT = `You are "Ask Nylvex," an assistant embedded on the Nylvex studio website. Nylvex is an AI and software engineering studio built by Fahad.
+const SYSTEM_PROMPT = `You are "Ask Nylvex," a project-discovery assistant embedded on the Nylvex studio website. Your job is to: explain what Nylvex does, help visitors discover relevant Nylvex projects and capabilities, let visitors describe an idea or problem and sketch a possible technical approach, and guide genuinely interested visitors toward starting a project.
 
-Answer only using the context below about Nylvex's real projects and capabilities. Be concise (2-4 sentences). When a specific project is clearly the best match, reference it once using the exact format [[project-slug]] so the site can render a link — never invent a slug that isn't listed.
-
-If a question is unrelated to Nylvex, AI engineering, or software engineering, say briefly that you can only answer questions about Nylvex's work.
+Ground rules:
+- Only use the context below. Never invent clients, projects, results, revenue, metrics, testimonials, partnerships, certifications, prior experience, or technologies that aren't listed.
+- If you don't have enough information to answer accurately, say so plainly: "I don't have enough information to answer that accurately." Do not guess.
+- When a specific Nylvex project is clearly relevant, include its slug in relevantProjectSlugs — only slugs from the provided list, never invented.
+- When specific capabilities are relevant, include them in relevantCapabilities — only items from the provided list, in their exact listed wording.
+- If the visitor describes a concrete idea or problem worth sketching (e.g. "I want a system that reads emails and routes important ones"), provide 3-6 short architectureSteps describing a plausible pipeline from input to outcome, in order.
+- Only set suggestStartProject to true when the visitor has shown genuine project intent (they described something they want built, not just casual browsing or a general question).
+- Keep the message field concise: 2-5 sentences, conversational, not a sales pitch.
+- If a question is unrelated to Nylvex, AI engineering, or software engineering, briefly say you can only help with Nylvex-related questions.
 
 Context:
 ${buildContext()}`;
+
+const RESPOND_TOOL = {
+  name: "respond_to_visitor",
+  description: "Send a structured reply to the website visitor.",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      message: {
+        type: "string",
+        description: "The conversational reply to show the visitor, 2-5 sentences.",
+      },
+      relevantCapabilities: {
+        type: "array",
+        items: { type: "string" },
+        description: "Relevant capability names from the provided list, if applicable.",
+      },
+      relevantProjectSlugs: {
+        type: "array",
+        items: { type: "string" },
+        description: "Relevant Nylvex project slugs from the provided list, if applicable.",
+      },
+      architectureSteps: {
+        type: "array",
+        items: { type: "string" },
+        description: "3-6 short pipeline steps if the visitor described an idea worth sketching.",
+      },
+      suggestStartProject: {
+        type: "boolean",
+        description: "True only if the visitor has shown genuine project intent.",
+      },
+    },
+    required: ["message"],
+  },
+};
+
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
+function sanitizeMessages(input: unknown): ChatMessage[] | null {
+  if (!Array.isArray(input) || input.length === 0) return null;
+
+  const messages: ChatMessage[] = [];
+  for (const item of input) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      (item.role !== "user" && item.role !== "assistant") ||
+      typeof item.content !== "string"
+    ) {
+      return null;
+    }
+    const content = item.content.trim();
+    if (!content || content.length > MAX_MESSAGE_LENGTH) return null;
+    messages.push({ role: item.role, content });
+  }
+
+  if (messages[messages.length - 1].role !== "user") return null;
+
+  // Cap conversation length server-side regardless of what the client sends,
+  // both for cost control and to bound worst-case payload size.
+  return messages.slice(-MAX_MESSAGES);
+}
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Ask Nylvex is not configured yet." },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Ask Nylvex is not configured yet." }, { status: 503 });
   }
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
 
   // Each request is a real, billed call to Anthropic's API — cap volume per
   // IP so this can't be scripted into unbounded API spend (denial-of-wallet).
-  if (isRateLimited(`ask-nylvex:${ip}`, { windowMs: 10 * 60 * 1000, maxRequests: 8 })) {
+  if (isRateLimited(`ask-nylvex:${ip}`, { windowMs: 10 * 60 * 1000, maxRequests: 12 })) {
     return NextResponse.json(
-      { error: "Too many questions. Please try again in a few minutes." },
+      { error: "Too many messages. Please try again in a few minutes." },
       { status: 429 }
     );
   }
 
   const body = await request.json().catch(() => null);
-  const question = typeof body?.question === "string" ? body.question.trim() : "";
+  const messages = sanitizeMessages(body?.messages);
 
-  if (!question) {
-    return NextResponse.json({ error: "Enter a question." }, { status: 400 });
-  }
-
-  if (question.length > 500) {
-    return NextResponse.json(
-      { error: "Keep questions under 500 characters." },
-      { status: 400 }
-    );
+  if (!messages) {
+    return NextResponse.json({ error: "Invalid message." }, { status: 400 });
   }
 
   try {
@@ -74,9 +153,11 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5",
-        max_tokens: 400,
+        max_tokens: 700,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: question }],
+        messages,
+        tools: [RESPOND_TOOL],
+        tool_choice: { type: "tool", name: "respond_to_visitor" },
       }),
     });
 
@@ -88,10 +169,46 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const answer: string =
-      data.content?.find((block: { type: string }) => block.type === "text")?.text ?? "";
+    const toolUse = data.content?.find(
+      (block: { type: string }) => block.type === "tool_use"
+    ) as { input?: Record<string, unknown> } | undefined;
 
-    return NextResponse.json({ answer });
+    const input = toolUse?.input ?? {};
+    const message = typeof input.message === "string" ? input.message : "";
+
+    if (!message) {
+      return NextResponse.json(
+        { error: "Ask Nylvex couldn't process that. Please try again." },
+        { status: 502 }
+      );
+    }
+
+    // Never trust the model's slugs/capabilities as-is — filter against the
+    // real, known lists so a hallucinated value can never reach the client.
+    const relevantProjectSlugs = Array.isArray(input.relevantProjectSlugs)
+      ? input.relevantProjectSlugs.filter(
+          (slug): slug is string => typeof slug === "string" && KNOWN_PROJECT_SLUGS.has(slug)
+        )
+      : [];
+
+    const relevantCapabilities = Array.isArray(input.relevantCapabilities)
+      ? input.relevantCapabilities.filter(
+          (item): item is string =>
+            typeof item === "string" && KNOWN_CAPABILITIES.has(item.toLowerCase())
+        )
+      : [];
+
+    const architectureSteps = Array.isArray(input.architectureSteps)
+      ? input.architectureSteps.filter((step): step is string => typeof step === "string").slice(0, 6)
+      : [];
+
+    return NextResponse.json({
+      message,
+      relevantProjectSlugs,
+      relevantCapabilities,
+      architectureSteps,
+      suggestStartProject: input.suggestStartProject === true,
+    });
   } catch {
     return NextResponse.json(
       { error: "Ask Nylvex couldn't process that. Please try again." },

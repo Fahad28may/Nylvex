@@ -24,7 +24,9 @@ export type AnalyticsEvent =
   | "contact_started"
   | "contact_submitted"
   | "capability_view"
-  | "lab_demo_click";
+  | "lab_demo_click"
+  | "chat_started"
+  | "chat_handoff";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>) {
   if (!ensureInit()) return;

@@ -1,16 +1,24 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { submitContactForm, type ContactFormState } from "@/app/contact/actions";
 import { Field, TextInput, TextArea, Select } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
+import { readAndClearChatHandoff } from "@/lib/chat-handoff";
 
 const initialState: ContactFormState = { status: "idle" };
 
 export function ContactForm() {
   const [state, formAction, isPending] = useActionState(submitContactForm, initialState);
   const hasStarted = useRef(false);
+  const [projectValue, setProjectValue] = useState("");
+
+  const handleStart = () => {
+    if (hasStarted.current) return;
+    hasStarted.current = true;
+    trackEvent("contact_started");
+  };
 
   useEffect(() => {
     if (state.status === "success") {
@@ -18,11 +26,16 @@ export function ContactForm() {
     }
   }, [state.status]);
 
-  const handleStart = () => {
-    if (hasStarted.current) return;
-    hasStarted.current = true;
-    trackEvent("contact_started");
-  };
+  useEffect(() => {
+    // One-time read of a client-only value (sessionStorage) that can't be
+    // known during SSR — not syncing to an external subscription.
+    const summary = readAndClearChatHandoff();
+    if (summary) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProjectValue(summary);
+      handleStart();
+    }
+  }, []);
 
   if (state.status === "success") {
     return (
@@ -73,7 +86,15 @@ export function ContactForm() {
       </Field>
 
       <Field label="What are you trying to build?" htmlFor="project" required error={errors.project}>
-        <TextArea id="project" name="project" maxLength={5000} required />
+        <TextArea
+          id="project"
+          name="project"
+          maxLength={5000}
+          required
+          value={projectValue}
+          onChange={(event) => setProjectValue(event.target.value)}
+          rows={projectValue ? 5 : undefined}
+        />
       </Field>
 
       <Field
