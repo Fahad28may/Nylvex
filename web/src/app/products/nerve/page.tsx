@@ -2,17 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Tag } from "@/components/ui/tag";
+import { Button } from "@/components/ui/button";
 import { RequestConsultationButton } from "@/components/products/request-consultation-button";
 import { getProductBySlug } from "@/data/products";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Nerve",
   description: "Nerve is an AI Business Operator built to run business conversations on WhatsApp.",
 };
 
-export default function NervePage() {
+export default async function NervePage() {
   const product = getProductBySlug("nerve");
   if (!product) notFound();
+
+  const session = await auth();
+  const requestNerveHref = session ? "/dashboard" : "/login?callbackUrl=%2Fdashboard";
 
   return (
     <Container className="flex flex-col gap-16 py-14 md:py-20">
@@ -22,7 +27,15 @@ export default function NervePage() {
           {product.name}
         </h1>
         <p className="max-w-2xl text-base text-muted-strong md:text-lg">{product.summary}</p>
-        <RequestConsultationButton productName={product.name} className="self-start" />
+        <div className="flex flex-wrap items-center gap-4">
+          <Button href={requestNerveHref}>Request Nerve</Button>
+          <RequestConsultationButton productName={product.name} variant="secondary" />
+        </div>
+        <p className="max-w-xl text-xs text-muted">
+          Requesting Nerve starts the process from your Nylvex dashboard — it doesn&apos;t fully
+          deploy Nerve automatically. WhatsApp connection and the rest of your business setup are
+          completed with our team afterward.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
@@ -82,7 +95,10 @@ export default function NervePage() {
         <p className="text-lg font-medium text-foreground">
           Want Nerve running for your business?
         </p>
-        <RequestConsultationButton productName={product.name} />
+        <div className="flex flex-wrap items-center gap-4">
+          <Button href={requestNerveHref}>Request Nerve</Button>
+          <RequestConsultationButton productName={product.name} variant="secondary" />
+        </div>
       </div>
     </Container>
   );
