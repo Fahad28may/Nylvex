@@ -1,8 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
 import { siteConfig } from "@/lib/site-config";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { consultationRequests, organizationMembers } from "@/lib/db/schema";
 
 export type ContactFormState = {
   status: "idle" | "success" | "error";
@@ -83,6 +87,39 @@ export async function submitContactForm(
     };
   }
 
+  const session = await auth();
+  let organizationId: string | null = null;
+  if (session?.user?.id) {
+    const [membership] = await db
+      .select({ organizationId: organizationMembers.organizationId })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.userId, session.user.id))
+      .limit(1);
+    organizationId = membership?.organizationId ?? null;
+  }
+
+  try {
+    await db.insert(consultationRequests).values({
+      userId: session?.user?.id ?? null,
+      organizationId,
+      name: fields.name,
+      email: fields.email,
+      companyName: fields.companyName || null,
+      project: fields.project,
+      problem: fields.problem,
+      existingSystem: fields.existingSystem || null,
+      integrations: fields.integrations || null,
+      budget: fields.budget || null,
+      timeline: fields.timeline || null,
+    });
+  } catch (error) {
+    console.error("Failed to persist consultation request", error);
+    return {
+      status: "error",
+      message: "Something went wrong submitting your request. Please email us directly.",
+    };
+  }
+
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (resendApiKey) {
@@ -116,11 +153,10 @@ export async function submitContactForm(
         throw new Error(`Resend responded with ${response.status}`);
       }
     } catch (error) {
-      console.error("Failed to send contact form email", error);
-      return {
-        status: "error",
-        message: "Something went wrong sending your message. Please email us directly.",
-      };
+      // The consultation is already persisted at this point — a notification
+      // failure shouldn't make the visitor think their request was lost, and
+      // it must not be resubmitted just because Resend had a bad moment.
+      console.error("Failed to send contact form notification email", error);
     }
   } else {
     console.info("Contact form submission received (email delivery not configured):", fields);
