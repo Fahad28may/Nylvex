@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "product_access_org_product_idx" ON "product_access" USING btree ("organization_id","product_slug");

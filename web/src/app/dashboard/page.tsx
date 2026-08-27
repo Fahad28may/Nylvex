@@ -5,6 +5,7 @@ import { DataCard } from "@/components/ui/data-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { RequestNerveButton } from "@/components/dashboard/request-nerve-button";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import {
@@ -23,14 +24,18 @@ export const metadata: Metadata = {
 
 const productAccessLabels: Record<ProductAccessStatus, string> = {
   requested: "Requested",
+  provisioning: "Provisioning...",
   active: "Active",
   suspended: "Suspended",
+  failed: "Failed",
 };
 
 const productAccessTones: Record<ProductAccessStatus, StatusTone> = {
   requested: "warning",
+  provisioning: "warning",
   active: "positive",
   suspended: "danger",
+  failed: "danger",
 };
 
 const consultationLabels: Record<ConsultationStatus, string> = {
@@ -87,7 +92,9 @@ export default async function DashboardPage() {
                   <span className="text-sm font-medium text-foreground">{product.name}</span>
                   <span className="text-xs text-muted-strong">{product.tagline}</span>
                 </div>
-                {status === "not-requested" ? (
+                {product.slug === "nerve" && (status === "not-requested" || status === "failed") ? (
+                  <RequestNerveButton label={status === "failed" ? "Retry" : "Request Nerve"} />
+                ) : status === "not-requested" ? (
                   <StatusBadge label="Not requested" tone="neutral" />
                 ) : (
                   <StatusBadge

@@ -6,7 +6,16 @@ export type UserRole = (typeof userRoleValues)[number];
 export const organizationMemberRoleValues = ["owner"] as const;
 export type OrganizationMemberRole = (typeof organizationMemberRoleValues)[number];
 
-export const productAccessStatusValues = ["requested", "active", "suspended"] as const;
+// "provisioning" and "failed" were added in Phase 9 to represent the
+// in-flight and failed states of an async Nerve provisioning call — the
+// original three values keep their original meaning.
+export const productAccessStatusValues = [
+  "requested",
+  "provisioning",
+  "active",
+  "suspended",
+  "failed",
+] as const;
 export type ProductAccessStatus = (typeof productAccessStatusValues)[number];
 
 export const productSlugValues = ["nerve"] as const;
@@ -58,17 +67,24 @@ export const organizationMembers = pgTable(
   (table) => [uniqueIndex("organization_members_org_user_idx").on(table.organizationId, table.userId)]
 );
 
-export const productAccess = pgTable("product_access", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  organizationId: uuid("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  productSlug: text("product_slug").$type<ProductSlug>().notNull(),
-  status: text("status").$type<ProductAccessStatus>().notNull().default("requested"),
-  externalReference: text("external_reference"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const productAccess = pgTable(
+  "product_access",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    productSlug: text("product_slug").$type<ProductSlug>().notNull(),
+    status: text("status").$type<ProductAccessStatus>().notNull().default("requested"),
+    externalReference: text("external_reference"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // One row per organization per product — this is what lets provisioning
+  // rely on the database as the concurrency arbiter (INSERT ... ON CONFLICT)
+  // instead of an in-memory lock that wouldn't hold across instances.
+  (table) => [uniqueIndex("product_access_org_product_idx").on(table.organizationId, table.productSlug)]
+);
 
 export const consultationRequests = pgTable("consultation_requests", {
   id: uuid("id").primaryKey().defaultRandom(),
