@@ -29,6 +29,40 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in real values. Never commit `.env.local`.
+
+- `DATABASE_URL` — Postgres connection string for the Nylvex database (see below). This is a separate database from Nerve's — Nylvex never queries Nerve's database directly.
+- `AUTH_SECRET` — random secret used to sign Auth.js session tokens. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+- `RESEND_API_KEY`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` — unchanged from before.
+
+## Local development database
+
+A `docker-compose.yml` is included for a local Postgres instance:
+
+```bash
+docker compose up -d
+```
+
+This starts Postgres on `localhost:5434` (chosen to avoid colliding with other local Postgres instances) with database `nylvex`, user `postgres`, password `postgres` — dev-only defaults, not used anywhere else. Point `DATABASE_URL` at it:
+
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5434/nylvex
+```
+
+### Migrations
+
+Schema lives in `src/lib/db/schema.ts`, managed with Drizzle ORM/Kit.
+
+```bash
+npm run db:generate   # generate a new migration from schema changes
+npm run db:migrate    # apply pending migrations to DATABASE_URL
+npm run db:studio     # browse the database in Drizzle Studio
+```
+
+Run `db:migrate` once against a fresh database before starting the app.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
