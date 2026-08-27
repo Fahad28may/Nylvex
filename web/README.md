@@ -35,6 +35,7 @@ Copy `.env.example` to `.env.local` and fill in real values. Never commit `.env.
 
 - `DATABASE_URL` — Postgres connection string for the Nylvex database (see below). This is a separate database from Nerve's — Nylvex never queries Nerve's database directly.
 - `AUTH_SECRET` — random secret used to sign Auth.js session tokens. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+- `NERVE_API_URL` / `NERVE_API_KEY` — base URL and bearer token for Nerve's server-to-server API. Server-only, never `NEXT_PUBLIC_*`. See [`docs/nerve-integration.md`](./docs/nerve-integration.md) for the full architecture.
 - `RESEND_API_KEY`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` — unchanged from before.
 
 ## Local development database
@@ -62,6 +63,19 @@ npm run db:studio     # browse the database in Drizzle Studio
 ```
 
 Run `db:migrate` once against a fresh database before starting the app.
+
+## Testing
+
+```bash
+npm run test
+```
+
+Runs the Vitest suite (`vitest run`). The Nerve client tests mock `fetch`
+and need no external service. The Nerve provisioning tests exercise the
+real `ProductAccess` table (so the unique-index concurrency guarantee is
+verified against real Postgres, not a mock of it) and are skipped
+automatically if `DATABASE_URL` isn't set — start the local dev database
+first (see above) to run them.
 
 ## Deploy on Vercel
 
