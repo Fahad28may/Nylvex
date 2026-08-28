@@ -1,4 +1,4 @@
-# Nylvex ↔ Nerve integration (Phase 9 + Phase 10)
+# Nylvex ↔ Nerve integration (Phase 9 + Phase 10 + Phase 11)
 
 Nylvex and Nerve are two separate applications with two separate PostgreSQL
 databases. Nylvex never connects to Nerve's database, and Nerve never
@@ -193,7 +193,27 @@ needs it independent of a live Nerve read.
   ("already connected elsewhere"); every other Nerve failure maps to a
   generic retry message. Neither ever surfaces Nerve's raw error text.
 
-### What Phase 10 does NOT implement
+### Hardening (Phase 11)
+
+- **Rate limiting**: `requestNerve()` and `connectWhatsapp()` are both
+  rate-limited per authenticated user (`src/lib/rate-limit.ts`, the same
+  in-memory/per-process limiter the contact form already uses) — defense
+  in depth on top of whatever Nerve does on its own side (Nerve's
+  `docs/NYLVEX_API.md` §15 documents its own, independent limiting on the
+  provisioning and WhatsApp onboarding endpoints).
+- **Nerve now verifies WABA↔phone ownership explicitly** (not just that
+  the token can read *a* phone number) and **encrypts the access token at
+  rest** — both are entirely on Nerve's side (`app/meta_graph.py`,
+  `app/crypto.py`) and require no change here; Nylvex never held that
+  credential either way.
+- See Nerve's `docs/META_SETUP_CHECKLIST.md` for exactly what must exist
+  in Meta's developer tooling (App ID/Secret, Embedded Signup
+  configuration, webhook field subscriptions including `account_update`)
+  before this flow can be exercised against the real Meta environment —
+  this remains unconfigured as of Phase 11; see its final report for the
+  exact blocker.
+
+### What Phase 10/11 do NOT implement
 
 - Disconnecting or replacing an already-connected WhatsApp number
 - Appointment booking, calendar integration, payments
@@ -202,7 +222,7 @@ needs it independent of a live Nerve read.
 - Email/iMessage/voice integration
 - Any direct browser → Nerve communication (the browser talks to Meta's
   own SDK and to Nylvex's server action, never to Nerve)
-- A real, tested Meta Embedded Signup call — see the Phase 10 final
+- A real, tested Meta Embedded Signup call — see the Phase 11 final
   report for what has and hasn't been verified against a live Meta
   environment.
 - Production deployment
