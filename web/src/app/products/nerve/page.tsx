@@ -32,9 +32,9 @@ export default async function NervePage() {
           <RequestConsultationButton productName={product.name} variant="secondary" />
         </div>
         <p className="max-w-xl text-xs text-muted">
-          Requesting Nerve starts the process from your Nylvex dashboard — it doesn&apos;t fully
-          deploy Nerve automatically. WhatsApp connection and the rest of your business setup are
-          completed with our team afterward.
+          Requesting Nerve provisions your business automatically from the dashboard. Once it&apos;s
+          ready, you connect your own WhatsApp Business account directly — Nerve isn&apos;t handling
+          customer conversations until that step is complete.
         </p>
       </div>
 
@@ -49,10 +49,15 @@ export default async function NervePage() {
         </div>
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-medium text-foreground">How it works</h2>
+          <ol className="flex flex-col gap-2 text-sm text-muted-strong">
+            <li>1. Request Nerve — we provision your business automatically.</li>
+            <li>2. Once it&apos;s ready, connect your WhatsApp Business account from the dashboard.</li>
+            <li>3. Nerve becomes active and starts handling customer conversations on that number.</li>
+          </ol>
           <p className="text-sm text-muted-strong">
-            A business configures Nerve with its own information. Customers message the business
-            on WhatsApp; Nerve reads the conversation history, answers using that business&apos;s
-            configuration, and keeps a persistent record of every customer and conversation.
+            After that, customers message the business on WhatsApp; Nerve reads the conversation
+            history, answers using that business&apos;s configuration, and keeps a persistent record
+            of every customer and conversation.
           </p>
         </div>
       </div>

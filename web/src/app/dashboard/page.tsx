@@ -6,12 +6,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { RequestNerveButton } from "@/components/dashboard/request-nerve-button";
+import { ConnectWhatsappButton } from "@/components/dashboard/connect-whatsapp-button";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import {
   getConsultationsForUser,
   getOrganizationForUser,
   getProductAccessForOrganization,
+  getWhatsappIntegrationForOrganization,
 } from "@/lib/db/queries";
 import type { ConsultationStatus, ProductAccessStatus } from "@/lib/db/schema";
 import { getAllProducts } from "@/data/products";
@@ -59,9 +61,10 @@ export default async function DashboardPage() {
   if (!session?.user) redirect("/login");
 
   const organization = await getOrganizationForUser(session.user.id);
-  const [access, consultations] = await Promise.all([
+  const [access, consultations, whatsappIntegration] = await Promise.all([
     organization ? getProductAccessForOrganization(organization.id) : Promise.resolve([]),
     getConsultationsForUser(session.user.id, organization?.id ?? null),
+    organization ? getWhatsappIntegrationForOrganization(organization.id) : Promise.resolve(null),
   ]);
 
   const accessBySlug = new Map<string, (typeof access)[number]>(
@@ -83,6 +86,16 @@ export default async function DashboardPage() {
           {getAllProducts().map((product) => {
             const row = accessBySlug.get(product.slug);
             const status: ProductAccessStatus | "not-requested" = row?.status ?? "not-requested";
+            // Nerve's lifecycle has one extra step read endpoints don't
+            // capture in `status` alone: a Business can exist
+            // (externalReference set) while still waiting on WhatsApp,
+            // which is also reported as "provisioning" -- distinguish the
+            // two using externalReference, not a second status value, so
+            // there is one authoritative place ProductAccess.status comes
+            // from (see lib/nerve/provisioning.ts).
+            const readyToConnectWhatsapp =
+              product.slug === "nerve" && status === "provisioning" && Boolean(row?.externalReference);
+
             return (
               <div
                 key={product.slug}
@@ -94,8 +107,16 @@ export default async function DashboardPage() {
                 </div>
                 {product.slug === "nerve" && (status === "not-requested" || status === "failed") ? (
                   <RequestNerveButton label={status === "failed" ? "Retry" : "Request Nerve"} />
+                ) : readyToConnectWhatsapp ? (
+                  <ConnectWhatsappButton
+                    initialFailureMessage={
+                      whatsappIntegration?.status === "failed" ? whatsappIntegration.failureReason : null
+                    }
+                  />
                 ) : status === "not-requested" ? (
                   <StatusBadge label="Not requested" tone="neutral" />
+                ) : product.slug === "nerve" && status === "active" ? (
+                  <StatusBadge label="WhatsApp Connected" tone="positive" />
                 ) : (
                   <StatusBadge
                     label={productAccessLabels[status]}
