@@ -132,7 +132,7 @@ describe("nerve client", () => {
   });
 
   it("rejects a response missing required fields as kind 'invalid_response'", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ business_id: "biz_1" }, 200));
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ id: "biz_1" }, 200));
     const { getBusiness } = await import("./client");
 
     await expect(getBusiness("biz_1")).rejects.toMatchObject({ kind: "invalid_response" });
@@ -140,11 +140,40 @@ describe("nerve client", () => {
 
   it("rejects a response with an invalid status enum as kind 'invalid_response'", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
-      jsonResponse({ business_id: "biz_1", name: "Acme", status: "deleted" }, 200)
+      jsonResponse({ id: "biz_1", name: "Acme", status: "deleted" }, 200)
     );
     const { getBusiness } = await import("./client");
 
     await expect(getBusiness("biz_1")).rejects.toMatchObject({ kind: "invalid_response" });
+  });
+
+  it("parses a real GET /businesses/{id} response, which uses 'id' not 'business_id'", async () => {
+    // Regression test: Nerve's GET /businesses/{id} (BusinessResponse)
+    // uses "id", while POST /businesses (BusinessProvisionResponse) uses
+    // "business_id" -- these are two different, intentional Nerve
+    // response shapes (see app/api/v1/schemas.py). Found via a Phase 12
+    // live test against a real running Nerve instance: getBusiness()
+    // previously rejected every real response with "invalid_response"
+    // because it incorrectly expected "business_id" here too.
+    vi.mocked(fetch).mockResolvedValueOnce(
+      jsonResponse(
+        {
+          id: "biz_1",
+          name: "Acme Dental",
+          industry: "Dental Clinic",
+          description: "",
+          location: "",
+          contact: "",
+          status: "provisioning",
+        },
+        200
+      )
+    );
+    const { getBusiness } = await import("./client");
+
+    const result = await getBusiness("biz_1");
+
+    expect(result).toEqual({ businessId: "biz_1", name: "Acme Dental", status: "provisioning" });
   });
 
   it("throws a config error without revealing which variable is missing", async () => {

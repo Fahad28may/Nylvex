@@ -108,7 +108,13 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
-function parseBusiness(payload: unknown, context: string): NerveBusiness {
+// Nerve's two Business-shaped responses genuinely use different field
+// names for the same identifier (see Nerve's app/api/v1/schemas.py):
+// POST /businesses returns "business_id" (BusinessProvisionResponse),
+// GET /businesses/{id} returns "id" (BusinessResponse). This is Nerve's
+// real, documented, intentional contract, not a bug on Nerve's side --
+// so this client needs two parsers, not one shared one.
+function parseProvisionedBusiness(payload: unknown, context: string): NerveBusiness {
   if (
     !payload ||
     typeof payload !== "object" ||
@@ -125,6 +131,23 @@ function parseBusiness(payload: unknown, context: string): NerveBusiness {
   return { businessId: record.business_id, name: record.name, status: record.status };
 }
 
+function parseFetchedBusiness(payload: unknown, context: string): NerveBusiness {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !isNonEmptyString((payload as Record<string, unknown>).id) ||
+    !isNonEmptyString((payload as Record<string, unknown>).name) ||
+    ((payload as Record<string, unknown>).status !== "provisioning" &&
+      (payload as Record<string, unknown>).status !== "active")
+  ) {
+    console.error("Nerve response failed shape validation", context);
+    throw new NerveClientError("invalid_response", "Nerve returned an unexpected response.");
+  }
+
+  const record = payload as { id: string; name: string; status: NerveBusinessStatus };
+  return { businessId: record.id, name: record.name, status: record.status };
+}
+
 export async function provisionBusiness(input: NerveProvisionInput): Promise<NerveBusiness> {
   const payload = await nerveFetch("/api/v1/businesses", {
     method: "POST",
@@ -138,7 +161,7 @@ export async function provisionBusiness(input: NerveProvisionInput): Promise<Ner
     }),
   });
 
-  return parseBusiness(payload, "provisionBusiness");
+  return parseProvisionedBusiness(payload, "provisionBusiness");
 }
 
 export async function getBusiness(businessId: string): Promise<NerveBusiness> {
@@ -146,7 +169,7 @@ export async function getBusiness(businessId: string): Promise<NerveBusiness> {
     method: "GET",
   });
 
-  return parseBusiness(payload, "getBusiness");
+  return parseFetchedBusiness(payload, "getBusiness");
 }
 
 export type NerveWhatsappConnectInput = {
