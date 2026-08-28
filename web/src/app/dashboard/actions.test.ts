@@ -11,6 +11,13 @@ vi.mock("@/lib/nerve/provisioning", () => ({
 vi.mock("@/lib/nerve/whatsapp", () => ({
   connectWhatsappForUser: vi.fn(),
 }));
+// Mocked so tests are independent of the real limiter's shared in-memory
+// state (which would otherwise let one test's calls exhaust another
+// test's budget for the same mocked user id) -- rate-limited behavior
+// itself is tested explicitly below with this mock instead.
+vi.mock("@/lib/rate-limit", () => ({
+  isRateLimited: vi.fn(() => false),
+}));
 
 describe("requestNerve server action", () => {
   beforeEach(() => {
@@ -63,6 +70,23 @@ describe("requestNerve server action", () => {
 
     expect(Object.keys(result)).not.toContain("apiKey");
     expect(JSON.stringify(result)).not.toMatch(/nerve_api_key/i);
+  });
+
+  it("refuses to provision when rate limited, without calling the service", async () => {
+    const { auth } = await import("@/lib/auth");
+    const { requestNerveProvisioning } = await import("@/lib/nerve/provisioning");
+    const { isRateLimited } = await import("@/lib/rate-limit");
+    (auth as unknown as Mock).mockResolvedValueOnce({
+      user: { id: "user-123", role: "client", name: "Test", email: "test@example.com" },
+      expires: "2099-01-01",
+    });
+    vi.mocked(isRateLimited).mockReturnValueOnce(true);
+
+    const { requestNerve } = await import("./actions");
+    const result = await requestNerve();
+
+    expect(result.status).toBe("failed");
+    expect(requestNerveProvisioning).not.toHaveBeenCalled();
   });
 });
 
@@ -139,5 +163,22 @@ describe("connectWhatsapp server action", () => {
     const result = await connectWhatsapp(validInput);
 
     expect(JSON.stringify(result)).not.toMatch(/access_token|nerve_api_key/i);
+  });
+
+  it("refuses to connect when rate limited, without calling the service", async () => {
+    const { auth } = await import("@/lib/auth");
+    const { connectWhatsappForUser } = await import("@/lib/nerve/whatsapp");
+    const { isRateLimited } = await import("@/lib/rate-limit");
+    (auth as unknown as Mock).mockResolvedValueOnce({
+      user: { id: "user-123", role: "client", name: "Test", email: "test@example.com" },
+      expires: "2099-01-01",
+    });
+    vi.mocked(isRateLimited).mockReturnValueOnce(true);
+
+    const { connectWhatsapp } = await import("./actions");
+    const result = await connectWhatsapp(validInput);
+
+    expect(result.status).toBe("failed");
+    expect(connectWhatsappForUser).not.toHaveBeenCalled();
   });
 });
