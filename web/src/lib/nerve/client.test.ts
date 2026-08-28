@@ -167,4 +167,75 @@ describe("nerve client", () => {
       assertNoSecretLeaked((error as Error).message, error);
     }
   });
+
+  describe("connectWhatsapp", () => {
+    const validConnection = {
+      business_id: "biz_1",
+      status: "connected",
+      waba_id: "waba_1",
+      phone_number_id: "phone_1",
+      display_phone_number: "+1 555 0100",
+      verified_name: "Acme Dental",
+      connected_at: "2026-08-28T12:00:00.000000Z",
+    };
+
+    it("connects successfully and never sends a Meta access token in the request", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(validConnection, 200));
+      const { connectWhatsapp } = await import("./client");
+
+      const result = await connectWhatsapp("biz_1", {
+        code: "fake-embedded-signup-code",
+        wabaId: "waba_1",
+        phoneNumberId: "phone_1",
+      });
+
+      expect(result).toEqual({
+        businessId: "biz_1",
+        wabaId: "waba_1",
+        phoneNumberId: "phone_1",
+        displayPhoneNumber: "+1 555 0100",
+        verifiedName: "Acme Dental",
+        connectedAt: "2026-08-28T12:00:00.000000Z",
+      });
+
+      const [url, init] = vi.mocked(fetch).mock.calls[0];
+      expect(String(url)).toContain("/api/v1/businesses/biz_1/whatsapp");
+      const body = JSON.parse(String(init?.body));
+      expect(Object.keys(body)).toEqual(["code", "waba_id", "phone_number_id"]);
+      expect((init?.headers as Record<string, string>).Authorization).toBe(`Bearer ${FAKE_KEY}`);
+    });
+
+    it("maps a 409 conflict to kind 'http' with status 409", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        jsonResponse({ detail: "This WhatsApp number is already connected to a different business." }, 409)
+      );
+      const { connectWhatsapp } = await import("./client");
+
+      await expect(
+        connectWhatsapp("biz_1", { code: "c", wabaId: "w", phoneNumberId: "p" })
+      ).rejects.toMatchObject({ kind: "http", status: 409 });
+      assertNoSecretLeaked();
+    });
+
+    it("rejects a response missing required fields as kind 'invalid_response'", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ business_id: "biz_1" }, 200));
+      const { connectWhatsapp } = await import("./client");
+
+      await expect(
+        connectWhatsapp("biz_1", { code: "c", wabaId: "w", phoneNumberId: "p" })
+      ).rejects.toMatchObject({ kind: "invalid_response" });
+    });
+
+    it("never leaks the Nerve API key through a connectWhatsapp failure", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ detail: "Could not complete WhatsApp onboarding." }, 502));
+      const { connectWhatsapp } = await import("./client");
+
+      try {
+        await connectWhatsapp("biz_1", { code: "c", wabaId: "w", phoneNumberId: "p" });
+        expect.unreachable();
+      } catch (error) {
+        assertNoSecretLeaked((error as Error).message, error);
+      }
+    });
+  });
 });
