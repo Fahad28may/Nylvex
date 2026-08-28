@@ -149,6 +149,74 @@ export async function getBusiness(businessId: string): Promise<NerveBusiness> {
   return parseBusiness(payload, "getBusiness");
 }
 
+export type NerveWhatsappConnectInput = {
+  code: string;
+  wabaId: string;
+  phoneNumberId: string;
+};
+
+export type NerveWhatsappConnection = {
+  businessId: string;
+  wabaId: string;
+  phoneNumberId: string;
+  displayPhoneNumber: string | null;
+  verifiedName: string | null;
+  connectedAt: string;
+};
+
+function parseWhatsappConnection(payload: unknown, context: string): NerveWhatsappConnection {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !isNonEmptyString((payload as Record<string, unknown>).business_id) ||
+    !isNonEmptyString((payload as Record<string, unknown>).waba_id) ||
+    !isNonEmptyString((payload as Record<string, unknown>).phone_number_id) ||
+    !isNonEmptyString((payload as Record<string, unknown>).connected_at)
+  ) {
+    console.error("Nerve whatsapp response failed shape validation", context);
+    throw new NerveClientError("invalid_response", "Nerve returned an unexpected response.");
+  }
+
+  const record = payload as {
+    business_id: string;
+    waba_id: string;
+    phone_number_id: string;
+    display_phone_number: unknown;
+    verified_name: unknown;
+    connected_at: string;
+  };
+
+  return {
+    businessId: record.business_id,
+    wabaId: record.waba_id,
+    phoneNumberId: record.phone_number_id,
+    displayPhoneNumber: isNonEmptyString(record.display_phone_number) ? record.display_phone_number : null,
+    verifiedName: isNonEmptyString(record.verified_name) ? record.verified_name : null,
+    connectedAt: record.connected_at,
+  };
+}
+
+// `input.code` is the short-lived (30s TTL), single-use Embedded Signup
+// authorization code from Meta -- never a Meta access token, which this
+// client (and Nylvex generally) never holds. Nerve owns the code exchange
+// server-side; see docs/NERVE_INTEGRATION.md and Nerve's own
+// docs/NYLVEX_API.md §8a.
+export async function connectWhatsapp(
+  businessId: string,
+  input: NerveWhatsappConnectInput
+): Promise<NerveWhatsappConnection> {
+  const payload = await nerveFetch(`/api/v1/businesses/${encodeURIComponent(businessId)}/whatsapp`, {
+    method: "POST",
+    body: JSON.stringify({
+      code: input.code,
+      waba_id: input.wabaId,
+      phone_number_id: input.phoneNumberId,
+    }),
+  });
+
+  return parseWhatsappConnection(payload, "connectWhatsapp");
+}
+
 export async function getBusinessSummary(businessId: string): Promise<NerveBusinessSummary> {
   const payload = await nerveFetch(
     `/api/v1/businesses/${encodeURIComponent(businessId)}/summary`,
