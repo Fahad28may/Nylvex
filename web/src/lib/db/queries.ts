@@ -1,6 +1,12 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { consultationRequests, organizationMembers, organizations, productAccess } from "@/lib/db/schema";
+import {
+  consultationRequests,
+  organizationMembers,
+  organizations,
+  productAccess,
+  whatsappIntegrations,
+} from "@/lib/db/schema";
 
 // Every query here takes an authenticated userId (never a client-supplied
 // organizationId) and derives what that user is allowed to see from there.
@@ -21,6 +27,17 @@ export async function getProductAccessForOrganization(organizationId: string) {
     .select()
     .from(productAccess)
     .where(eq(productAccess.organizationId, organizationId));
+}
+
+export async function getWhatsappIntegrationForOrganization(organizationId: string) {
+  const [row] = await db
+    .select({ integration: whatsappIntegrations })
+    .from(productAccess)
+    .innerJoin(whatsappIntegrations, eq(whatsappIntegrations.productAccessId, productAccess.id))
+    .where(and(eq(productAccess.organizationId, organizationId), eq(productAccess.productSlug, "nerve")))
+    .limit(1);
+
+  return row?.integration ?? null;
 }
 
 export async function getConsultationsForUser(userId: string, organizationId: string | null) {
