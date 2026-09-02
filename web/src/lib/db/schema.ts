@@ -6,35 +6,6 @@ export type UserRole = (typeof userRoleValues)[number];
 export const organizationMemberRoleValues = ["owner"] as const;
 export type OrganizationMemberRole = (typeof organizationMemberRoleValues)[number];
 
-// "provisioning" and "failed" were added in Phase 9 to represent the
-// in-flight and failed states of an async Nerve provisioning call — the
-// original three values keep their original meaning.
-export const productAccessStatusValues = [
-  "requested",
-  "provisioning",
-  "active",
-  "suspended",
-  "failed",
-] as const;
-export type ProductAccessStatus = (typeof productAccessStatusValues)[number];
-
-export const productSlugValues = ["nerve"] as const;
-export type ProductSlug = (typeof productSlugValues)[number];
-
-// Tracks a Nerve business's WhatsApp Embedded Signup onboarding, separate
-// from productAccess.status (which tracks Nerve provisioning itself).
-// "not_connected" covers both "not started" and "a previous attempt
-// failed" -- there is no separate terminal failure state because a
-// failure is always safely retryable from the same starting point (see
-// lib/nerve/whatsapp.ts).
-export const whatsappIntegrationStatusValues = [
-  "not_connected",
-  "connecting",
-  "connected",
-  "failed",
-] as const;
-export type WhatsappIntegrationStatus = (typeof whatsappIntegrationStatusValues)[number];
-
 export const consultationStatusValues = [
   "pending",
   "reviewing",
@@ -79,51 +50,6 @@ export const organizationMembers = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex("organization_members_org_user_idx").on(table.organizationId, table.userId)]
-);
-
-export const productAccess = pgTable(
-  "product_access",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    organizationId: uuid("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    productSlug: text("product_slug").$type<ProductSlug>().notNull(),
-    status: text("status").$type<ProductAccessStatus>().notNull().default("requested"),
-    externalReference: text("external_reference"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  // One row per organization per product — this is what lets provisioning
-  // rely on the database as the concurrency arbiter (INSERT ... ON CONFLICT)
-  // instead of an in-memory lock that wouldn't hold across instances.
-  (table) => [uniqueIndex("product_access_org_product_idx").on(table.organizationId, table.productSlug)]
-);
-
-export const whatsappIntegrations = pgTable(
-  "whatsapp_integrations",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    // One row per ProductAccess (i.e. per org-per-product), enforced below.
-    // Deliberately not folded into productAccess itself: these columns are
-    // Nerve/WhatsApp-specific, not something every future product needs.
-    productAccessId: uuid("product_access_id")
-      .notNull()
-      .references(() => productAccess.id, { onDelete: "cascade" }),
-    status: text("status").$type<WhatsappIntegrationStatus>().notNull().default("not_connected"),
-    // Safe, display-only metadata mirrored from Nerve's response (see
-    // lib/nerve/client.ts's connectWhatsapp) -- never a Meta access token,
-    // which stays in Nerve's database exclusively (see docs/NERVE_INTEGRATION.md).
-    wabaId: text("waba_id"),
-    phoneNumberId: text("phone_number_id"),
-    displayPhoneNumber: text("display_phone_number"),
-    businessDisplayName: text("business_display_name"),
-    failureReason: text("failure_reason"),
-    connectedAt: timestamp("connected_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [uniqueIndex("whatsapp_integrations_product_access_idx").on(table.productAccessId)]
 );
 
 export const consultationRequests = pgTable("consultation_requests", {

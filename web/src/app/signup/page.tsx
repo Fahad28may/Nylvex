@@ -6,12 +6,12 @@ import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Sign up",
-  description: "Create a Nylvex account to access your dashboard.",
+  description: "Create a Nylvex account.",
 };
 
 export default async function SignupPage() {
   const session = await auth();
-  if (session) redirect("/dashboard");
+  if (session) redirect("/");
 
   return (
     <Container className="flex flex-col gap-10 py-14 md:py-20">
@@ -23,8 +23,7 @@ export default async function SignupPage() {
           Create your account
         </h1>
         <p className="max-w-xl text-base text-muted-strong md:text-lg">
-          Get access to your Nylvex dashboard — track consultations and product access in one
-          place.
+          Create an account to get started with Nylvex.
         </p>
       </div>
 

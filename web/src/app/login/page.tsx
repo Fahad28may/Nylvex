@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   const session = await auth();
-  if (session) redirect("/dashboard");
+  if (session) redirect("/");
 
   return (
     <Container className="flex flex-col gap-10 py-14 md:py-20">

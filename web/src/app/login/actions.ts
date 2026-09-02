@@ -33,7 +33,7 @@ export async function login(
   }
 
   try {
-    await signIn("credentials", { email, password, redirectTo: "/dashboard" });
+    await signIn("credentials", { email, password, redirectTo: "/" });
   } catch (error) {
     if (error instanceof AuthError) {
       return { status: "error", message: "Invalid email or password." };
